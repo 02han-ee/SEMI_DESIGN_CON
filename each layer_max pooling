@@ -1,0 +1,202 @@
+// 하나의 파라미터화된 모듈을 사용하여 각 레이어의 요구에 맞게 설정하는 코드이다.
+
+// 첫 번째 Convolution Layer 출력 후 ReLU 적용.
+// 첫 번째 ReLU 출력 후 Max Pooling 적용.
+// 두 번째 Convolution Layer 출력 후 ReLU 적용.
+// 두 번째 ReLU 출력 후 Max Pooling 적용.
+// 세 번째 Convolution Layer 출력 후 ReLU 적용.
+// 세 번째 ReLU 출력 후 Max Pooling 적용.
+
+
+// 파라미터 정의
+parameter CONV1_BIT = 12;
+parameter CONV2_BIT = 12;
+parameter CONV3_BIT = 12;
+
+////////// 첫 번째 Convolution Layer 출력 후 ReLU 적용
+
+wire signed [CONV1_BIT-1:0] conv1_out_1, conv1_out_2, conv1_out_3;
+wire valid_conv1;
+
+////////// Convolution Layer 1 모듈 인스턴스 (입력 크기: (32, 26, 34))
+
+conv_layer1 conv1 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_in),
+    .input_data(input_data),
+    .conv_out_1(conv1_out_1),
+    .conv_out_2(conv1_out_2),
+    .conv_out_3(conv1_out_3),
+    .valid_out(valid_conv1)
+);
+
+////////// ReLU 모듈 인스턴스 (출력 크기: (32, 26, 34))
+
+wire signed [CONV1_BIT-1:0] relu1_out_1, relu1_out_2, relu1_out_3;
+wire valid_relu1;
+
+relu #(
+    .CONV_BIT(CONV1_BIT)
+) relu1 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_conv1),
+    .conv_out_1(conv1_out_1),
+    .conv_out_2(conv1_out_2),
+    .conv_out_3(conv1_out_3),
+    .relu_out_1(relu1_out_1),
+    .relu_out_2(relu1_out_2),
+    .relu_out_3(relu1_out_3),
+    .valid_out(valid_relu1)
+);
+
+////////// 첫 번째 ReLU 출력 후 Max Pooling 적용
+
+parameter POOL1_WIDTH = 13;
+parameter POOL1_HEIGHT = 17;
+
+wire signed [CONV1_BIT-1:0] pool1_out_1, pool1_out_2, pool1_out_3;
+wire valid_pool1;
+
+maxpool #(
+    .CONV_BIT(CONV1_BIT),
+    .HALF_WIDTH(2),
+    .HALF_HEIGHT(2),
+    .HALF_WIDTH_BIT(1)
+) maxpool1 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_relu1),
+    .relu_out_1(relu1_out_1),
+    .relu_out_2(relu1_out_2),
+    .relu_out_3(relu1_out_3),
+    .max_value_1(pool1_out_1),
+    .max_value_2(pool1_out_2),
+    .max_value_3(pool1_out_3),
+    .valid_out(valid_pool1)
+);
+
+////////// 두 번째 Convolution Layer 출력 후 ReLU 적용
+
+wire signed [CONV2_BIT-1:0] conv2_out_1, conv2_out_2, conv2_out_3;
+wire valid_conv2;
+
+conv_layer2 conv2 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_pool1),
+    .input_data(pool1_out_1), // 필요시 추가 입력 데이터 연결
+    .conv_out_1(conv2_out_1),
+    .conv_out_2(conv2_out_2),
+    .conv_out_3(conv2_out_3),
+    .valid_out(valid_conv2)
+);
+
+////////// ReLU 모듈 인스턴스 (출력 크기: (64, 13, 17))
+
+wire signed [CONV2_BIT-1:0] relu2_out_1, relu2_out_2, relu2_out_3;
+wire valid_relu2;
+
+relu #(
+    .CONV_BIT(CONV2_BIT)
+) relu2 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_conv2),
+    .conv_out_1(conv2_out_1),
+    .conv_out_2(conv2_out_2),
+    .conv_out_3(conv2_out_3),
+    .relu_out_1(relu2_out_1),
+    .relu_out_2(relu2_out_2),
+    .relu_out_3(relu2_out_3),
+    .valid_out(valid_relu2)
+);
+
+////////// 두 번째 ReLU 출력 후 Max Pooling 적용
+
+parameter POOL2_WIDTH = 6;
+parameter POOL2_HEIGHT = 8;
+
+wire signed [CONV2_BIT-1:0] pool2_out_1, pool2_out_2, pool2_out_3;
+wire valid_pool2;
+
+maxpool #(
+    .CONV_BIT(CONV2_BIT),
+    .HALF_WIDTH(2),
+    .HALF_HEIGHT(2),
+    .HALF_WIDTH_BIT(1)
+) maxpool2 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_relu2),
+    .relu_out_1(relu2_out_1),
+    .relu_out_2(relu2_out_2),
+    .relu_out_3(relu2_out_3),
+    .max_value_1(pool2_out_1),
+    .max_value_2(pool2_out_2),
+    .max_value_3(pool2_out_3),
+    .valid_out(valid_pool2)
+);
+
+////////// 세 번째 Convolution Layer 출력 후 ReLU 적용
+
+wire signed [CONV3_BIT-1:0] conv3_out_1, conv3_out_2, conv3_out_3;
+wire valid_conv3;
+
+conv_layer3 conv3 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_pool2),
+    .input_data(pool2_out_1), // 필요시 추가 입력 데이터 연결
+    .conv_out_1(conv3_out_1),
+    .conv_out_2(conv3_out_2),
+    .conv_out_3(conv3_out_3),
+    .valid_out(valid_conv3)
+);
+
+////////// ReLU 모듈 인스턴스 (출력 크기: (128, 6, 8))
+
+wire signed [CONV3_BIT-1:0] relu3_out_1, relu3_out_2, relu3_out_3;
+wire valid_relu3;
+
+relu #(
+    .CONV_BIT(CONV3_BIT)
+) relu3 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_conv3),
+    .conv_out_1(conv3_out_1),
+    .conv_out_2(conv3_out_2),
+    .conv_out_3(conv3_out_3),
+    .relu_out_1(relu3_out_1),
+    .relu_out_2(relu3_out_2),
+    .relu_out_3(relu3_out_3),
+    .valid_out(valid_relu3)
+);
+
+////////// 세 번째 ReLU 출력 후 Max Pooling 적용
+
+parameter POOL3_WIDTH = 3;
+parameter POOL3_HEIGHT = 4;
+
+wire signed [CONV3_BIT-1:0] pool3_out_1, pool3_out_2, pool3_out_3;
+wire valid_pool3;
+
+maxpool #(
+    .CONV_BIT(CONV3_BIT),
+    .HALF_WIDTH(2),
+    .HALF_HEIGHT(2),
+    .HALF_WIDTH_BIT(1)
+) maxpool3 (
+    .clk(clk),
+    .rst_n(rst_n),
+    .valid_in(valid_relu3),
+    .relu_out_1(relu3_out_1),
+    .relu_out_2(relu3_out_2),
+    .relu_out_3(relu3_out_3),
+    .max_value_1(pool3_out_1),
+    .max_value_2(pool3_out_2),
+    .max_value_3(pool3_out_3),
+    .valid_out(valid_pool3)
+);

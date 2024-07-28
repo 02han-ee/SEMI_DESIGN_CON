@@ -1,0 +1,141 @@
+// ReLU를 적용한 후 max pooling을 수행하도록 코드를 작성한다.
+
+// 1. 첫 번째 Convolution Layer 출력 후 ReLU 적용.
+// 2. 첫 번째 ReLU 출력 후 Max Pooling 적용.
+// 3. 두 번째 Convolution Layer 출력 후 ReLU 적용.
+// 4. 두 번째 ReLU 출력 후 Max Pooling 적용.
+// 5. 세 번째 Convolution Layer 출력 후 ReLU 적용.
+// 6. 세 번째 ReLU 출력 후 Max Pooling 적용.
+
+// 이때, 동일한 maxPooling 모듈을 각 레이어에 대해 인스턴스화하되, 
+// 입력 값과 enable 신호는 각 레이어의 요구에 맞게 다르게 설정한다. 
+// 각 레이어는 고유한 입력 데이터를 받아서 max pooling 연산을 수행한다.
+
+
+
+// 1단계. ReLU 연산을 수행하는 별도의 모듈을 정의
+
+module relu #(
+    parameter CONV_BIT = 12
+)(
+    input clk,
+    input rst_n,
+    input valid_in,
+    input signed [CONV_BIT-1:0] conv_out_1, 
+    input signed [CONV_BIT-1:0] conv_out_2, 
+    input signed [CONV_BIT-1:0] conv_out_3,
+    output reg signed [CONV_BIT-1:0] relu_out_1, 
+    output reg signed [CONV_BIT-1:0] relu_out_2, 
+    output reg signed [CONV_BIT-1:0] relu_out_3,
+    output reg valid_out
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            valid_out <= 0;
+            relu_out_1 <= 0;
+            relu_out_2 <= 0;
+            relu_out_3 <= 0;
+        end else if (valid_in) begin
+            valid_out <= 1;
+            relu_out_1 <= (conv_out_1 > 0) ? conv_out_1 : 0;
+            relu_out_2 <= (conv_out_2 > 0) ? conv_out_2 : 0;
+            relu_out_3 <= (conv_out_3 > 0) ? conv_out_3 : 0;
+        end else begin
+            valid_out <= 0;
+        end
+    end
+endmodule
+
+// 2단계. Max Pooling 연산을 수행하는 별도의 모듈을 정의
+
+module maxpool #(
+    parameter CONV_BIT = 12, 
+    HALF_WIDTH = 2, 
+    HALF_HEIGHT = 2, 
+    HALF_WIDTH_BIT = 1
+)(
+    input clk,
+    input rst_n,
+    input valid_in,
+    input signed [CONV_BIT - 1 : 0] relu_out_1, 
+    input signed [CONV_BIT - 1 : 0] relu_out_2, 
+    input signed [CONV_BIT - 1 : 0] relu_out_3,
+    output reg signed [CONV_BIT - 1 : 0] max_value_1, 
+    output reg signed [CONV_BIT - 1 : 0] max_value_2, 
+    output reg signed [CONV_BIT - 1 : 0] max_value_3,
+    output reg valid_out
+);
+
+    reg signed [CONV_BIT - 1:0] buffer1 [0:HALF_WIDTH * HALF_HEIGHT - 1];
+    reg signed [CONV_BIT - 1:0] buffer2 [0:HALF_WIDTH * HALF_HEIGHT - 1];
+    reg signed [CONV_BIT - 1:0] buffer3 [0:HALF_WIDTH * HALF_HEIGHT - 1];
+
+    reg [HALF_WIDTH_BIT:0] pcount;
+    reg state;
+    reg flag;
+
+    always @(posedge clk or negedge rst_n) begin
+        if(~rst_n) begin
+            valid_out <= 0;
+            pcount <= 0;
+            state <= 0;
+            flag <= 0;
+        end else begin
+            if(valid_in == 1'b1) begin
+                flag <= ~flag;
+                if(flag == 1) begin
+                    pcount <= pcount + 1;
+                    if(pcount == HALF_WIDTH * HALF_HEIGHT - 1) begin
+                        state <= ~state;
+                        pcount <= 0;
+                    end
+                end
+
+                if(state == 0) begin    // first line
+                    valid_out <= 0;
+                    if(flag == 0) begin    // first input
+                        buffer1[pcount] <= relu_out_1;
+                        buffer2[pcount] <= relu_out_2;
+                        buffer3[pcount] <= relu_out_3;
+                    end else begin    // second input -> comparison
+                        if(buffer1[pcount] < relu_out_1)
+                            buffer1[pcount] <= relu_out_1;
+                        if(buffer2[pcount] < relu_out_2)
+                            buffer2[pcount] <= relu_out_2;
+                        if(buffer3[pcount] < relu_out_3)
+                            buffer3[pcount] <= relu_out_3;
+                    end
+                end else begin    // second line
+                    if(flag == 0) begin    // third input -> comparison
+                        valid_out <= 0;
+                        if(buffer1[pcount] < relu_out_1)
+                            buffer1[pcount] <= relu_out_1;
+                        if(buffer2[pcount] < relu_out_2)
+                            buffer2[pcount] <= relu_out_2;
+                        if(buffer3[pcount] < relu_out_3)
+                            buffer3[pcount] <= relu_out_3;
+                    end else begin    // fourth input -> comparison + relu
+                        valid_out <= 1;
+                        if(buffer1[pcount] < relu_out_1)
+                            max_value_1 <= relu_out_1;
+                        else
+                            max_value_1 <= buffer1[pcount];
+
+                        if(buffer2[pcount] < relu_out_2)
+                            max_value_2 <= relu_out_2;
+                        else
+                            max_value_2 <= buffer2[pcount];
+
+                        if(buffer3[pcount] < relu_out_3)
+                            max_value_3 <= relu_out_3;
+                        else
+                            max_value_3 <= buffer3[pcount];
+                    end
+                end
+            end else begin
+                valid_out <= 0;
+            end
+        end
+    end
+endmodule
+

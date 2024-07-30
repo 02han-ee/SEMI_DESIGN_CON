@@ -9,7 +9,7 @@
 import numpy as np
 
 class ReLU:
-    def __init__(self, conv_bit=12):       # conv_bit는 12bit로 설정
+    def __init__(self, conv_bit=12):  # conv_bit는 12bit로 설정
         self.conv_bit = conv_bit
 
     def forward(self, conv_out):
@@ -17,41 +17,38 @@ class ReLU:
         return relu_out
 
 class MaxPool:
-    def __init__(self, conv_bit=12, half_width=2, half_height=2):
+    def __init__(self, conv_bit=12, pool_size=2):
         self.conv_bit = conv_bit
-        self.half_width = half_width
-        self.half_height = half_height
+        self.pool_size = pool_size
 
     def forward(self, relu_out):
-        # Assuming relu_out shape is (batch_size, height, width, channels)
-        batch_size, height, width, channels = relu_out.shape
-        out_height = (height + self.half_height - 1) // self.half_height
-        out_width = (width + self.half_width - 1) // self.half_width
+        # Assuming relu_out shape is (channels, height, width)
+        channels, height, width = relu_out.shape
+        out_height = height // self.pool_size
+        out_width = width // self.pool_size
 
-        pooled = np.zeros((batch_size, out_height, out_width, channels))
-        for i in range(0, height, self.half_height):
-            for j in range(0, width, self.half_width):
-                h_end = min(i + self.half_height, height)
-                w_end = min(j + self.half_width, width)
-                window = relu_out[:, i:h_end, j:w_end, :]
-                pooled[:, i//self.half_height, j//self.half_width, :] = np.max(window, axis=(1, 2))
+        pooled = np.zeros((channels, out_height, out_width))
+        for i in range(out_height):
+            for j in range(out_width):
+                window = relu_out[:, i*self.pool_size:(i+1)*self.pool_size, j*self.pool_size:(j+1)*self.pool_size]
+                pooled[:, i, j] = np.max(window, axis=(1, 2))
 
         return pooled
 
 # Simulation data for each layer
-conv1_out = np.random.randint(-2048, 2047, (32, 26, 34, 3))  # (배치 크기, 이미지 높이, 이미지 너비, 채널 수), 26*34 크기의 이미지
-conv2_out = np.random.randint(-2048, 2047, (64, 13, 17, 3))
-conv3_out = np.random.randint(-2048, 2047, (128, 6, 8, 3))
+conv1_out = np.random.randint(-2048, 2047, (32, 26, 34))  # (채널 수, 이미지 높이, 이미지 너비)
+conv2_out = np.random.randint(-2048, 2047, (64, 13, 17))
+conv3_out = np.random.randint(-2048, 2047, (128, 6, 8))
 
 # Instantiate ReLU and MaxPool
 relu1 = ReLU(conv_bit=12)
-maxpool1 = MaxPool(conv_bit=12, half_width=2, half_height=2)
+maxpool1 = MaxPool(conv_bit=12, pool_size=2)
 
 relu2 = ReLU(conv_bit=12)
-maxpool2 = MaxPool(conv_bit=12, half_width=2, half_height=2)
+maxpool2 = MaxPool(conv_bit=12, pool_size=2)
 
 relu3 = ReLU(conv_bit=12)
-maxpool3 = MaxPool(conv_bit=12, half_width=2, half_height=2)
+maxpool3 = MaxPool(conv_bit=12, pool_size=2)
 
 # Apply ReLU and MaxPool to the first convolution layer output
 relu1_out = relu1.forward(conv1_out)
@@ -73,3 +70,12 @@ print("MaxPool 2 Output Shape:", maxpool2_out.shape)
 print("ReLU 3 Output Shape:", relu3_out.shape)
 print("MaxPool 3 Output Shape:", maxpool3_out.shape)
 
+
+// 위의 코드 수행 결과
+
+// ReLU 1 Output Shape: (32, 26, 34)
+// MaxPool 1 Output Shape: (32, 13, 17)
+// ReLU 2 Output Shape: (64, 13, 17)
+// MaxPool 2 Output Shape: (64, 6, 8)
+// ReLU 3 Output Shape: (128, 6, 8)
+// MaxPool 3 Output Shape: (128, 3, 4)

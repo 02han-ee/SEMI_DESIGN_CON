@@ -1,0 +1,75 @@
+// 1. ReLU 클래스: ReLU 연산을 수행하는 클래스. 입력 값이 0보다 크면 그대로 출력하고, 그렇지 않으면 0으로 설정한다.
+// 2. MaxPool 클래스: Max Pooling 연산을 수행하는 클래스. relu_out 입력 배열을 받아, 각 윈도우(패치) 내에서 최대 값을 선택한다.
+// 3. 데이터 시뮬레이션: 각 Convolution Layer의 출력을 시뮬레이션하는 무작위 데이터를 생성한다.
+// 4. ReLU 및 MaxPool 적용: 각 Convolution Layer의 출력에 대해 ReLU와 Max Pooling을 적용한다.
+// 5. 출력 모양 확인: 각 단계의 출력 모양을 출력하여 확인한다.
+
+
+
+import numpy as np
+
+class ReLU:
+    def __init__(self, conv_bit=12):       # conv_bit는 12bit로 설정
+        self.conv_bit = conv_bit
+
+    def forward(self, conv_out):
+        relu_out = np.maximum(0, conv_out)
+        return relu_out
+
+class MaxPool:
+    def __init__(self, conv_bit=12, half_width=2, half_height=2):
+        self.conv_bit = conv_bit
+        self.half_width = half_width
+        self.half_height = half_height
+
+    def forward(self, relu_out):
+        # Assuming relu_out shape is (batch_size, height, width, channels)
+        batch_size, height, width, channels = relu_out.shape
+        out_height = (height + self.half_height - 1) // self.half_height
+        out_width = (width + self.half_width - 1) // self.half_width
+
+        pooled = np.zeros((batch_size, out_height, out_width, channels))
+        for i in range(0, height, self.half_height):
+            for j in range(0, width, self.half_width):
+                h_end = min(i + self.half_height, height)
+                w_end = min(j + self.half_width, width)
+                window = relu_out[:, i:h_end, j:w_end, :]
+                pooled[:, i//self.half_height, j//self.half_width, :] = np.max(window, axis=(1, 2))
+
+        return pooled
+
+# Simulation data for each layer
+conv1_out = np.random.randint(-2048, 2047, (32, 26, 34, 3))  # (배치 크기, 이미지 높이, 이미지 너비, 채널 수), 26*34 크기의 이미지
+conv2_out = np.random.randint(-2048, 2047, (64, 13, 17, 3))
+conv3_out = np.random.randint(-2048, 2047, (128, 6, 8, 3))
+
+# Instantiate ReLU and MaxPool
+relu1 = ReLU(conv_bit=12)
+maxpool1 = MaxPool(conv_bit=12, half_width=2, half_height=2)
+
+relu2 = ReLU(conv_bit=12)
+maxpool2 = MaxPool(conv_bit=12, half_width=2, half_height=2)
+
+relu3 = ReLU(conv_bit=12)
+maxpool3 = MaxPool(conv_bit=12, half_width=2, half_height=2)
+
+# Apply ReLU and MaxPool to the first convolution layer output
+relu1_out = relu1.forward(conv1_out)
+maxpool1_out = maxpool1.forward(relu1_out)
+
+# Apply ReLU and MaxPool to the second convolution layer output
+relu2_out = relu2.forward(conv2_out)
+maxpool2_out = maxpool2.forward(relu2_out)
+
+# Apply ReLU and MaxPool to the third convolution layer output
+relu3_out = relu3.forward(conv3_out)
+maxpool3_out = maxpool3.forward(relu3_out)
+
+# Print output shapes for verification
+print("ReLU 1 Output Shape:", relu1_out.shape)
+print("MaxPool 1 Output Shape:", maxpool1_out.shape)
+print("ReLU 2 Output Shape:", relu2_out.shape)
+print("MaxPool 2 Output Shape:", maxpool2_out.shape)
+print("ReLU 3 Output Shape:", relu3_out.shape)
+print("MaxPool 3 Output Shape:", maxpool3_out.shape)
+

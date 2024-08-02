@@ -1,0 +1,240 @@
+# 프로젝트 간단 요약 및 코드 정리본
+
+# 추가 조건 요약:
+# 1.	데이터와 필터의 비트 수
+# 데이터: 8bit 정수형
+# 필터: 32bit 부동소수점
+# 모든 출력을 32bit 부동소수점으로
+# 2.	정수형 데이터를 부동소수점으로 변환
+# 8bit 정수형을 32bit 부동소수점으로 변환하는 모듈 필요
+# 3.	Max Pooling의 부동소수점 비교
+# Max Pooling에서 부동소수점 데이터를 비교
+# 4.	패딩 모듈과의 연계
+# Max Pooling 출력이 패딩 모듈의 입력으로 사용됨
+
+•  Max Pooling Layer 설정
+•	Max Pooling Layer 1
+o	입력: (32, 26, 34)
+o	출력: (32, 13, 17)
+o	Pooling 크기: 2x2
+•	Max Pooling Layer 2
+o	입력: (64, 13, 17)
+o	출력: (64, 6, 8)
+o	Pooling 크기: 2x2
+•	Max Pooling Layer 3
+o	입력: (128, 6, 8)
+o	출력: (128, 3, 4)
+o	Pooling 크기: 2x2
+•  ReLU 후 Max Pooling 수행
+•	각 Max Pooling Layer 전에 ReLU 수행
+•  CNN 가속기 도식화
+•	입력: (1, 26, 34)
+•	Zero Padding: (1, 28, 36)
+•	Convolution Layer 1: (32, 26, 34)
+•	ReLU
+•	Max Pooling Layer 1: (32, 13, 17)
+•	Convolution Layer 2: (64, 13, 17)
+•	ReLU
+•	Max Pooling Layer 2: (64, 6, 8)
+•	Convolution Layer 3: (128, 6, 8)
+•	ReLU
+•	Max Pooling Layer 3: (128, 3, 4)
+•	Flatten Layer: 1536 (128 * 3 * 4)
+•	Fully Connected Layer 1: 512
+•	ReLU
+•	Fully Connected Layer 2: 1
+
+############################### 정수형 데이터를 부동소수점으로 변환 모듈: IEEE 754 부동소수점 변환 모듈
+
+module int_to_float (
+    input wire [7:0] int_data,
+    output wire [31:0] float_data
+);
+    reg [31:0] result;
+    reg [7:0] exp;
+    reg [22:0] mantissa;
+    reg sign;
+    
+    // Intermediate values
+    reg [7:0] shift_amount;
+    reg [7:0] int_data_abs;
+    reg [7:0] exponent;
+    reg [31:0] float_temp;
+
+    // Calculate the floating point representation
+    always @(*) begin
+        // Default result
+        result = 32'b0;
+
+        // Handle sign bit
+        sign = int_data[7];
+
+        // Convert integer to absolute value
+        int_data_abs = (sign ? -int_data : int_data);
+
+        // Find the exponent (this is a simple version, assuming integer fits in 8 bits)
+        exponent = 8'd127; // Bias for single precision IEEE 754
+        
+        if (int_data_abs != 8'b0) begin
+            // Find the highest set bit position to determine the exponent
+            shift_amount = 8'd0;
+            while (int_data_abs > 0) begin
+                int_data_abs = int_data_abs >> 1;
+                shift_amount = shift_amount + 1;
+            end
+            exponent = 8'd127 + shift_amount;
+        end
+
+        // Prepare the mantissa
+        mantissa = 23'b0;
+        if (int_data != 8'b0) begin
+            mantissa = int_data_abs[7:0];
+            mantissa = mantissa << (23 - shift_amount); // Left shift to fit mantissa size
+        end
+
+        // Assemble the floating-point result
+        result = {sign, exponent, mantissa};
+    end
+
+    assign float_data = result;
+endmodule
+
+############################### Max Pooling Layer (2x2) 부동소수점 비교
+
+module float_comparator (
+    input wire [31:0] a,
+    input wire [31:0] b,
+    output wire gt // a > b 일 때 1
+);
+    assign gt = (a > b) ? 1 : 0;
+endmodule
+
+############################### Max Pooling Layer 1 (2x2) : 정수형 데이터를 부동소수점으로 변환, 부동소수점 비교를 수행하도록 Max Pooling Layer를 수정
+
+module max_pooling_2x2_layer1 (
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in [31:0][25:0][33:0], // (32, 26, 34) input
+    output wire [31:0] data_out [31:0][12:0][16:0] // (32, 13, 17) output
+);
+    // Max Pooling and ReLU implementation
+    integer i, j, k;
+    reg [31:0] max_val;
+    wire [31:0] float_data_in [3:0];
+    wire [31:0] float_max_val;
+    wire gt_0_1, gt_2_3, gt_final;
+
+    // 정수형 데이터를 부동소수점으로 변환
+    int_to_float itf0 (.int_data(data_in[i][2*j][2*k]), .float_data(float_data_in[0]));
+    int_to_float itf1 (.int_data(data_in[i][2*j][2*k+1]), .float_data(float_data_in[1]));
+    int_to_float itf2 (.int_data(data_in[i][2*j+1][2*k]), .float_data(float_data_in[2]));
+    int_to_float itf3 (.int_data(data_in[i][2*j+1][2*k+1]), .float_data(float_data_in[3]));
+
+    // 부동소수점 비교
+    float_comparator cmp0 (.a(float_data_in[0]), .b(float_data_in[1]), .gt(gt_0_1));
+    float_comparator cmp1 (.a(float_data_in[2]), .b(float_data_in[3]), .gt(gt_2_3));
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            // Reset logic
+        end else begin
+            for (i = 0; i < 32; i = i + 1) begin
+                for (j = 0; j < 13; j = j + 1) begin
+                    for (k = 0; k < 17; k = k + 1) begin
+                        max_val = (gt_0_1) ? float_data_in[0] : float_data_in[1];
+                        float_max_val = (gt_2_3) ? float_data_in[2] : float_data_in[3];
+                        max_val = (max_val > float_max_val) ? max_val : float_max_val;
+                        data_out[i][j][k] = (max_val > 32'h0) ? max_val : 32'h0; // ReLU
+                    end
+                end
+            end
+        end
+    end
+endmodule
+
+############################### Max Pooling Layer 2 (2x2): 부동소수점 변환 및 비교를 수행
+
+module max_pooling_2x2_layer2 (
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in [63:0][12:0][16:0], // (64, 13, 17) input
+    output wire [31:0] data_out [63:0][5:0][7:0] // (64, 6, 8) output
+);
+    // Max Pooling and ReLU implementation
+    integer i, j, k;
+    reg [31:0] max_val;
+    wire [31:0] float_data_in [3:0];
+    wire [31:0] float_max_val;
+    wire gt_0_1, gt_2_3, gt_final;
+
+    // 정수형 데이터를 부동소수점으로 변환
+    int_to_float itf0 (.int_data(data_in[i][2*j][2*k]), .float_data(float_data_in[0]));
+    int_to_float itf1 (.int_data(data_in[i][2*j][2*k+1]), .float_data(float_data_in[1]));
+    int_to_float itf2 (.int_data(data_in[i][2*j+1][2*k]), .float_data(float_data_in[2]));
+    int_to_float itf3 (.int_data(data_in[i][2*j+1][2*k+1]), .float_data(float_data_in[3]));
+
+    // 부동소수점 비교
+    float_comparator cmp0 (.a(float_data_in[0]), .b(float_data_in[1]), .gt(gt_0_1));
+    float_comparator cmp1 (.a(float_data_in[2]), .b(float_data_in[3]), .gt(gt_2_3));
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            // Reset logic
+        end else begin
+            for (i = 0; i < 64; i = i + 1) begin
+                for (j = 0; j < 6; j = j + 1) begin
+                    for (k = 0; k < 8; k = k + 1) begin
+                        max_val = (gt_0_1) ? float_data_in[0] : float_data_in[1];
+                        float_max_val = (gt_2_3) ? float_data_in[2] : float_data_in[3];
+                        max_val = (max_val > float_max_val) ? max_val : float_max_val;
+                        data_out[i][j][k] = (max_val > 32'h0) ? max_val : 32'h0; // ReLU
+                    end
+                end
+            end
+        end
+    end
+endmodule
+
+############################### Max Pooling Layer 3: 부동소수점 변환 및 비교를 수행
+
+module max_pooling_2x2_layer3 (
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in [127:0][5:0][7:0], // (128, 6, 8) input
+    output wire [31:0] data_out [127:0][2:0][3:0] // (128, 3, 4) output
+);
+    // Max Pooling and ReLU implementation
+    integer i, j, k;
+    reg [31:0] max_val;
+    wire [31:0] float_data_in [3:0];
+    wire [31:0] float_max_val;
+    wire gt_0_1, gt_2_3, gt_final;
+
+    // 정수형 데이터를 부동소수점으로 변환
+    int_to_float itf0 (.int_data(data_in[i][2*j][2*k]), .float_data(float_data_in[0]));
+    int_to_float itf1 (.int_data(data_in[i][2*j][2*k+1]), .float_data(float_data_in[1]));
+    int_to_float itf2 (.int_data(data_in[i][2*j+1][2*k]), .float_data(float_data_in[2]));
+    int_to_float itf3 (.int_data(data_in[i][2*j+1][2*k+1]), .float_data(float_data_in[3]));
+
+    // 부동소수점 비교
+    float_comparator cmp0 (.a(float_data_in[0]), .b(float_data_in[1]), .gt(gt_0_1));
+    float_comparator cmp1 (.a(float_data_in[2]), .b(float_data_in[3]), .gt(gt_2_3));
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            // Reset logic
+        end else begin
+            for (i = 0; i < 128; i = i + 1) begin
+                for (j = 0; j < 3; j = j + 1) begin
+                    for (k = 0; k < 4; k = k + 1) begin
+                        max_val = (gt_0_1) ? float_data_in[0] : float_data_in[1];
+                        float_max_val = (gt_2_3) ? float_data_in[2] : float_data_in[3];
+                        max_val = (max_val > float_max_val) ? max_val : float_max_val;
+                        data_out[i][j][k] = (max_val > 32'h0) ? max_val : 32'h0; // ReLU
+                    end
+                end
+            end
+        end
+    end
+endmodule
+

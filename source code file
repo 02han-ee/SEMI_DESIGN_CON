@@ -99,6 +99,63 @@ module int_to_float (
     assign float_data = result;
 endmodule
 
+############################### 정수형 데이터를 부동소수점으로 변환 모듈_테스트벤치 코드
+
+`timescale 1ns / 1ps
+
+module tb_int_to_float;
+
+    // Inputs
+    reg [7:0] int_data;
+
+    // Outputs
+    wire [31:0] float_data;
+
+    // Instantiate the Unit Under Test (UUT)
+    int_to_float uut (
+        .int_data(int_data),
+        .float_data(float_data)
+    );
+
+    initial begin
+        // Initialize Inputs
+        int_data = 8'b0;
+
+        // Wait for global reset
+        #100;
+
+        // Apply test vectors
+        int_data = 8'd0; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        int_data = 8'd1; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        int_data = 8'd2; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        int_data = 8'd-1; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        int_data = 8'd127; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        int_data = 8'd-128; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        int_data = 8'd64; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        int_data = 8'd-64; #10;
+        $display("int_data = %d, float_data = %h", int_data, float_data);
+
+        // Finish simulation
+        $finish;
+    end
+
+endmodule
+
+
 ############################### Max Pooling Layer (2x2) 부동소수점 비교
 
 module float_comparator (

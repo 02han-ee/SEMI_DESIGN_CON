@@ -1,0 +1,88 @@
+### int8_to_float32
+
+module int8_to_float32 (
+    input [7:0] int8,
+    output reg [31:0] float32
+);
+    reg [31:0] temp;
+    integer i;
+    reg [7:0] int8_temp;
+
+    always @(*) begin
+        int8_temp = int8;
+        
+        // 부호 비트 설정 (양수이므로 0)
+        temp[31] = 1'b0;
+        
+        // 지수와 가수 계산
+        i = 0;
+        while (int8_temp[7] != 1'b1 && i < 8) begin
+            int8_temp = int8_temp << 1;
+            i = i + 1;
+        end
+        
+        // 지수 비트 설정 (127 + (7 - i))
+        temp[30:23] = 8'd127 + (7 - i);
+        
+        // 가수 비트 설정
+        temp[22:0] = int8_temp[6:0] << 16;
+        
+        // 결과 설정
+        float32 = temp;
+    end
+endmodule
+
+
+### int8_to_float32_tb
+
+`timescale 1ns / 1ps
+
+module int8_to_float32_tb;
+
+    reg [7:0] int8;
+    wire [31:0] float32;
+
+    // DUT (Device Under Test) 인스턴스화
+    int8_to_float32 dut (
+        .int8(int8),
+        .float32(float32)
+    );
+
+    initial begin
+        // 테스트 케이스
+        int8 = 8'd0;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        int8 = 8'd1;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        int8 = 8'd10;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        int8 = 8'd50;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        int8 = 8'd100;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        int8 = 8'd150;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        int8 = 8'd200;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        int8 = 8'd255;
+        #10;
+        $display("int8 = %d, float32 = %h", int8, float32);
+
+        $finish;
+    end
+endmodule
+

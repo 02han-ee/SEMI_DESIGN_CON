@@ -1,0 +1,167 @@
+//////////////////////// Max Pooling Layer 1, 입력: (32, 26, 34), 출력: (32, 13, 17) ////////////////////////
+
+module max_pooling_layer1(
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in[0:32*26*34-1], // (32, 26, 34)
+    output wire [31:0] data_out[0:32*13*17-1] // (32, 13, 17)
+);
+
+    genvar i, j, k;
+    generate
+        for (i = 0; i < 32; i = i + 1) begin: channel
+            for (j = 0; j < 13; j = j + 1) begin: row
+                for (k = 0; k < 17; k = k + 1) begin: col
+                    max_pooling max_pool (
+                        .clk(clk),
+                        .rst_n(rst_n),
+                        .data_in0(data_in[(i*26*34) + (2*j*34) + 2*k]),
+                        .data_in1(data_in[(i*26*34) + (2*j*34) + 2*k + 1]),
+                        .data_in2(data_in[(i*26*34) + ((2*j+1)*34) + 2*k]),
+                        .data_in3(data_in[(i*26*34) + ((2*j+1)*34) + 2*k + 1]),
+                        .data_out(data_out[(i*13*17) + (j*17) + k])
+                    );
+                end
+            end
+        end
+    endgenerate
+endmodule
+
+//////////////////////// Max Pooling Layer 2, 입력: (64, 13, 17), 출력: (64, 6, 8) ////////////////////////
+
+module max_pooling_layer2(
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in[0:64*13*17-1], // (64, 13, 17)
+    output wire [31:0] data_out[0:64*6*8-1] // (64, 6, 8)
+);
+
+    genvar i, j, k;
+    generate
+        for (i = 0; i < 64; i = i + 1) begin: channel
+            for (j = 0; j < 6; j = j + 1) begin: row
+                for (k = 0; k < 8; k = k + 1) begin: col
+                    max_pooling max_pool (
+                        .clk(clk),
+                        .rst_n(rst_n),
+                        .data_in0(data_in[(i*13*17) + (2*j*17) + 2*k]),
+                        .data_in1(data_in[(i*13*17) + (2*j*17) + 2*k + 1]),
+                        .data_in2(data_in[(i*13*17) + ((2*j+1)*17) + 2*k]),
+                        .data_in3(data_in[(i*13*17) + ((2*j+1)*17) + 2*k + 1]),
+                        .data_out(data_out[(i*6*8) + (j*8) + k])
+                    );
+                end
+            end
+        end
+    endgenerate
+endmodule
+
+//////////////////////// Max Pooling Layer 3, 입력: (128, 6, 8), 출력: (128, 3, 4) ////////////////////////
+
+module max_pooling_layer3(
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in[0:128*6*8-1], // (128, 6, 8)
+    output wire [31:0] data_out[0:128*3*4-1] // (128, 3, 4)
+);
+
+    genvar i, j, k;
+    generate
+        for (i = 0; i < 128; i = i + 1) begin: channel
+            for (j = 0; j < 3; j = j + 1) begin: row
+                for (k = 0; k < 4; k = k + 1) begin: col
+                    max_pooling max_pool (
+                        .clk(clk),
+                        .rst_n(rst_n),
+                        .data_in0(data_in[(i*6*8) + (2*j*8) + 2*k]),
+                        .data_in1(data_in[(i*6*8) + (2*j*8) + 2*k + 1]),
+                        .data_in2(data_in[(i*6*8) + ((2*j+1)*8) + 2*k]),
+                        .data_in3(data_in[(i*6*8) + ((2*j+1)*8) + 2*k + 1]),
+                        .data_out(data_out[(i*3*4) + (j*4) + k])
+                    );
+                end
+            end
+        end
+    endgenerate
+endmodule
+
+//////////////////////// Max Pooling Module ////////////////////////
+
+module max_pooling(
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in0,
+    input wire [31:0] data_in1,
+    input wire [31:0] data_in2,
+    input wire [31:0] data_in3,
+    output reg [31:0] data_out
+);
+
+    wire [31:0] max_0_1;
+    wire [31:0] max_2_3;
+    wire gt_0_1;
+    wire gt_2_3;
+
+    // 부동소수점 비교 모듈 인스턴스
+    float_compare comp0 (
+        .a(data_in0),
+        .b(data_in1),
+        .a_gt_b(gt_0_1)
+    );
+
+    float_compare comp1 (
+        .a(data_in2),
+        .b(data_in3),
+        .a_gt_b(gt_2_3)
+    );
+
+    // 두 비교 중 큰 값을 선택
+    assign max_0_1 = gt_0_1 ? data_in0 : data_in1;
+    assign max_2_3 = gt_2_3 ? data_in2 : data_in3;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            data_out <= 32'b0;
+        else
+            data_out <= (max_0_1 > max_2_3) ? max_0_1 : max_2_3;
+    end
+endmodule
+
+module float_compare(
+    input wire [31:0] a,
+    input wire [31:0] b,
+    output wire a_gt_b
+);
+    // 음수를 0으로 처리
+    wire [31:0] pos_a = a[31] ? 32'b0 : a;
+    wire [31:0] pos_b = b[31] ? 32'b0 : b;
+
+    // 지수 및 가수 분리
+    wire [7:0] exp_a = pos_a[30:23];
+    wire [7:0] exp_b = pos_b[30:23];
+    wire [22:0] mant_a = pos_a[22:0];
+    wire [22:0] mant_b = pos_b[22:0];
+
+    // 비교 연산
+    assign a_gt_b = (exp_a == exp_b) ? (mant_a > mant_b) : (exp_a > exp_b);
+endmodule
+
+//////////////////////// ReLU Activation Module ////////////////////////
+
+module relu_activation(
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in,
+    output reg [31:0] data_out
+);
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            data_out <= 32'b0;
+        else if (data_in[31] == 1'b0) // MSB가 0이면 양수 또는 0
+            data_out <= data_in;
+        else
+            data_out <= 32'b0;
+    end
+endmodule
+

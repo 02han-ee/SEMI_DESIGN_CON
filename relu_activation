@@ -1,0 +1,20 @@
+// ReLU : 입력 값이 0보다 크면 그대로 출력하고, 0보다 작거나 같으면 0을 출력하는 함수
+
+`timescale 1ns / 1ps
+
+module relu_activation(
+    input wire clk,
+    input wire rst_n,
+    input wire [31:0] data_in,
+    output reg [31:0] data_out
+);
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            data_out <= 32'b0;
+        else if (data_in[31] == 1'b0) // MSB가 0이면 양수 또는 0
+            data_out <= data_in;
+        else
+            data_out <= 32'b0;
+    end
+endmodule

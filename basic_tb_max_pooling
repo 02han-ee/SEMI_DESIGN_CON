@@ -1,0 +1,129 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2024/08/03 14:52:04
+// Design Name: 
+// Module Name: tb_max_pooling
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+module tb_max_pooling;
+
+    // Inputs
+    reg clk;
+    reg rst_n;
+    reg [31:0] data_in0;
+    reg [31:0] data_in1;
+    reg [31:0] data_in2;
+    reg [31:0] data_in3;
+
+    // Outputs
+    wire [31:0] data_out;
+
+    // Instantiate the Max Pooling Module
+    max_pooling uut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .data_in0(data_in0),
+        .data_in1(data_in1),
+        .data_in2(data_in2),
+        .data_in3(data_in3),
+        .data_out(data_out)
+    );
+
+    // Clock generation
+    always #5 clk = ~clk; // 10ns period
+
+    initial begin
+        // Initialize Inputs
+        clk = 0;
+        rst_n = 0;
+        data_in0 = 32'b0;
+        data_in1 = 32'b0;
+        data_in2 = 32'b0;
+        data_in3 = 32'b0;
+
+        // Apply reset
+        #10;
+        rst_n = 1;
+
+        // Test case 1: Inputs 1, 0, 0.121212, 0.23482
+        #10;
+        data_in0 = 32'h3F800000; // 1.0 in IEEE 754
+        data_in1 = 32'h00000000; // 0.0 in IEEE 754
+        data_in2 = 32'h3DFE883E; // 0.121212 in IEEE 754
+        data_in3 = 32'h3E715AEE; // 0.23482 in IEEE 754
+        #10;
+        $display("Test 1 - Inputs: %h, %h, %h, %h, Output: %h", data_in0, data_in1, data_in2, data_in3, data_out);
+
+        // Test case 2: Inputs 1, 2, 1, 2
+        #10;
+        data_in0 = 32'h3F800000; // 1.0 in IEEE 754
+        data_in1 = 32'h40000000; // 2.0 in IEEE 754
+        data_in2 = 32'h3F800000; // 1.0 in IEEE 754
+        data_in3 = 32'h40000000; // 2.0 in IEEE 754
+        #10;
+        $display("Test 2 - Inputs: %h, %h, %h, %h, Output: %h", data_in0, data_in1, data_in2, data_in3, data_out);
+
+        // Test case 3: Inputs 1.323, 2.3123, 1.4234, 1.421
+        #10;
+        data_in0 = 32'h3FA996E8; // 1.323 in IEEE 754
+        data_in1 = 32'h401F9EEC; // 2.3123 in IEEE 754
+        data_in2 = 32'h3FB66765; // 1.4234 in IEEE 754
+        data_in3 = 32'h3FB627DA; // 1.421 in IEEE 754
+        #10;
+        $display("Test 3 - Inputs: %h, %h, %h, %h, Output: %h", data_in0, data_in1, data_in2, data_in3, data_out);
+
+        // Test case 4: Inputs 0, 2.1231, 0, 1.13212
+        #10;
+        data_in0 = 32'h00000000; // 0.0 in IEEE 754
+        data_in1 = 32'h4007E0B2; // 2.1231 in IEEE 754
+        data_in2 = 32'h00000000; // 0.0 in IEEE 754
+        data_in3 = 32'h3F9073F6; // 1.13212 in IEEE 754
+        #10;
+        $display("Test 4 - Inputs: %h, %h, %h, %h, Output: %h", data_in0, data_in1, data_in2, data_in3, data_out);
+
+        // Test case 5: Inputs 0, 1.123, 1.213, 1.214
+        #10;
+        data_in0 = 32'h00000000; // 0.0 in IEEE 754
+        data_in1 = 32'h3F8F5C29; // 1.123 in IEEE 754
+        data_in2 = 32'h3F9B51EC; // 1.213 in IEEE 754
+        data_in3 = 32'h3F9B851F; // 1.214 in IEEE 754
+        #10;
+        $display("Test 5 - Inputs: %h, %h, %h, %h, Output: %h", data_in0, data_in1, data_in2, data_in3, data_out);
+
+        // Test case 6: Inputs 1.123, 1.124, 1.125, 1.125
+        #10;
+        data_in0 = 32'h3F8F5C29; // 1.123 in IEEE 754
+        data_in1 = 32'h3F8F851F; // 1.124 in IEEE 754
+        data_in2 = 32'h3F8FA147; // 1.125 in IEEE 754
+        data_in3 = 32'h3F8FA147; // 1.125 in IEEE 754
+        #10;
+        $display("Test 6 - Inputs: %h, %h, %h, %h, Output: %h", data_in0, data_in1, data_in2, data_in3, data_out);
+
+        // Test case 7: Inputs 1.123, 0.123, 1.123, 0
+        #10;
+        data_in0 = 32'h3F8F5C29; // 1.123 in IEEE 754
+        data_in1 = 32'h3DFCD6E6; // 0.123 in IEEE 754
+        data_in2 = 32'h3F8F5C29; // 1.123 in IEEE 754
+        data_in3 = 32'h00000000; // 0.0 in IEEE 754
+        #10;
+        $display("Test 7 - Inputs: %h, %h, %h, %h, Output: %h", data_in0, data_in1, data_in2, data_in3, data_out);
+
+        // Finish simulation
+        #10;
+        $finish;
+    end
+endmodule

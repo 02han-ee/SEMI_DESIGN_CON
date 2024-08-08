@@ -1,0 +1,100 @@
+module tb_relu_activation;
+
+    // Inputs
+    reg clk;
+    reg rst_n;
+    reg valid_in;
+    reg [31:0] data_in;
+
+    // Outputs
+    wire [31:0] data_out;
+    wire valid_out;
+
+    // Instantiate the ReLU module
+    relu_activation uut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .valid_in(valid_in),
+        .data_in(data_in),
+        .data_out(data_out),
+        .valid_out(valid_out)
+    );
+
+    // Clock generation
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // 10ns clock period
+    end
+
+    // Test vectors
+    initial begin
+        // Initialize inputs
+        rst_n = 0;
+        valid_in = 0;
+        data_in = 32'b0;
+
+        // Apply reset
+        #10;
+        rst_n = 1;
+
+        // Test case 1: Positive number
+        #10;
+        valid_in = 1;
+        data_in = 32'h3F800000; // Input: 5
+        #10;
+        valid_in = 0;
+
+        // Wait for valid_out to assert
+        #10;
+        if (data_out !== 32'h3F800000) $display("Test Case 1 Failed");
+
+        // Test case 2: Negative number
+        #10;
+        valid_in = 1;
+        data_in = 32'hBF800000; // Input: -2147483647 (0x80000001 in 2's complement)
+        #10;
+        valid_in = 0;
+
+        // Wait for valid_out to assert
+        #10;
+        if (data_out !== 32'hBF800000) $display("Test Case 2 Failed");
+
+        // Test case 3: Zero
+        #10;
+        valid_in = 1;
+        data_in = 32'h00000000; // Input: 0
+        #10;
+        valid_in = 0;
+
+        // Wait for valid_out to assert
+        #10;
+        if (data_out !== 32'h00000000) $display("Test Case 3 Failed");
+
+        // Test case 4: Positive number with valid_in delay
+        #10;
+        valid_in = 1;
+        data_in = 32'h3E99999A; // Input: 2147483647
+        #10;
+        valid_in = 0;
+
+        // Wait for valid_out to assert
+        #10;
+        if (data_out !== 32'h3E99999A) $display("Test Case 4 Failed");
+
+        // End the simulation
+        #10;
+        valid_in = 1;
+        data_in = 32'hBE99999A; // Input: 2147483647
+        #10;
+        valid_in = 0;
+
+        // Wait for valid_out to assert
+        #10;
+        if (data_out !== 32'hBE99999A) $display("Test Case 4 Failed");
+
+        // End the simulation
+        #10;
+        $finish;
+    end
+
+endmodule

@@ -1,4 +1,156 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// 4*4 사이즈, 채널 1개 기본 코드 //////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 `timescale 1ns / 1ps
+
+module max_pooling_layer1 #(
+    parameter IMAGE_WIDTH = 4,
+    parameter IMAGE_HEIGHT = 4,
+    parameter CHANNELS = 1, // 채널 수를 1로 설정
+    parameter POOL_WIDTH = 2,
+    parameter POOL_HEIGHT = 2,
+    parameter DATA_WIDTH = 32,  // 데이터의 비트 폭
+    parameter NUM_DATA = 16     // 총 데이터 개수 (4x4 이미지의 경우 16개 데이터)
+)(
+    input wire clk,
+    input wire rst_n,
+    input wire valid_in,  // 입력 데이터가 유효한지 여부
+    input wire [DATA_WIDTH-1:0] data_in[0:NUM_DATA-1],  // 데이터 배열 (16개의 32비트 데이터)
+    output reg valid_out,  // 출력 데이터가 유효한지 여부
+    output reg [DATA_WIDTH-1:0] data_out[0:(IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH)-1]  // 출력 데이터
+);
+
+    // 내부 신호
+    integer i, j, k, out_idx;
+    reg [DATA_WIDTH-1:0] pixel0, pixel1, pixel2, pixel3;
+    reg [DATA_WIDTH-1:0] max_0_1, max_2_3;
+    reg [DATA_WIDTH-1:0] max_0_1_2_3;
+    reg [DATA_WIDTH-1:0] temp_out [0:CHANNELS-1][0:(IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH)-1];
+
+    // Pooling 연산
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            // 초기화
+            for (i = 0; i < (IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH); i = i + 1) begin
+                data_out[i] <= 0;
+            end
+            valid_out <= 0;
+        end else if (valid_in) begin
+            // valid_in 신호가 1일 때 연산 수행
+            for (i = 0; i < CHANNELS; i = i + 1) begin
+                for (j = 0; j < IMAGE_HEIGHT/POOL_HEIGHT; j = j + 1) begin
+                    for (k = 0; k < IMAGE_WIDTH/POOL_WIDTH; k = k + 1) begin
+                        // 2x2 블록에서 각 픽셀을 선택
+                        pixel0 = data_in[(i*IMAGE_HEIGHT + j*POOL_HEIGHT)*IMAGE_WIDTH + k*POOL_WIDTH];
+                        pixel1 = data_in[(i*IMAGE_HEIGHT + j*POOL_HEIGHT)*IMAGE_WIDTH + k*POOL_WIDTH + 1];
+                        pixel2 = data_in[(i*IMAGE_HEIGHT + j*POOL_HEIGHT + 1)*IMAGE_WIDTH + k*POOL_WIDTH];
+                        pixel3 = data_in[(i*IMAGE_HEIGHT + j*POOL_HEIGHT + 1)*IMAGE_WIDTH + k*POOL_WIDTH + 1];
+
+                        // 각 2x2 블록에서 최대값을 찾는 연산
+                        max_0_1 = (pixel0 > pixel1) ? pixel0 : pixel1;
+                        max_2_3 = (pixel2 > pixel3) ? pixel2 : pixel3;
+                        max_0_1_2_3 = (max_0_1 > max_2_3) ? max_0_1 : max_2_3;
+
+                        // temp_out에 최대값 저장
+                        temp_out[i][j*(IMAGE_WIDTH/POOL_WIDTH) + k] = max_0_1_2_3;
+                    end
+                end
+            end
+
+            // temp_out 값을 data_out에 복사
+            out_idx = 0; // out_idx를 0으로 초기화
+            for (i = 0; i < CHANNELS; i = i + 1) begin
+                for (j = 0; j < (IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH); j = j + 1) begin
+                    data_out[out_idx] = temp_out[i][j];
+                    out_idx = out_idx + 1;
+                end
+            end
+
+            // valid_out 신호를 활성화
+            valid_out <= 1;
+        end else begin
+            // valid_in 신호가 0일 때 valid_out을 비활성화
+            valid_out <= 0;
+        end
+    end
+
+endmodule
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// 4*4 사이즈, 채널 5개 병령 인스턴스화 코드 //////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+`timescale 1ns / 1ps
+
+module max_pooling_layer1_top #(
+    parameter IMAGE_WIDTH = 4,
+    parameter IMAGE_HEIGHT = 4,
+    parameter CHANNELS = 5, // 5 채널
+    parameter POOL_WIDTH = 2,
+    parameter POOL_HEIGHT = 2,
+    parameter DATA_WIDTH = 32,
+    parameter NUM_DATA = IMAGE_WIDTH * IMAGE_HEIGHT // 16 데이터
+)(
+    input logic clk,
+    input logic rst_n,
+    input logic valid_in,
+    input logic [DATA_WIDTH-1:0] data_in [0:CHANNELS*NUM_DATA-1], // 5 채널 데이터 입력
+    output logic valid_out,
+    output logic [DATA_WIDTH-1:0] data_out [0:(IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH)-1] // 출력 데이터
+);
+
+    logic [DATA_WIDTH-1:0] channel_data_out [0:(IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH)*CHANNELS-1];
+    logic [CHANNELS-1:0] valid_out_channel;
+
+    genvar i;
+    generate
+        for (i = 0; i < CHANNELS; i = i + 1) begin: pooling_instance
+            max_pooling_layer1 #(
+                .IMAGE_WIDTH(IMAGE_WIDTH),
+                .IMAGE_HEIGHT(IMAGE_HEIGHT),
+                .CHANNELS(1), // 각 인스턴스는 단일 채널
+                .POOL_WIDTH(POOL_WIDTH),
+                .POOL_HEIGHT(POOL_HEIGHT),
+                .DATA_WIDTH(DATA_WIDTH),
+                .NUM_DATA(NUM_DATA)
+            ) u_max_pooling (
+                .clk(clk),
+                .rst_n(rst_n),
+                .valid_in(valid_in),
+                .data_in(data_in[i*NUM_DATA +: NUM_DATA]), // 채널별 데이터 입력
+                .valid_out(valid_out_channel[i]),
+                .data_out(channel_data_out[i*(IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH) +: (IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH)]) // 채널별 출력 데이터
+            );
+        end
+    endgenerate
+
+    // Merge output data from all channels
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            valid_out <= 0;
+            for (int i = 0; i < (IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH); i = i + 1) begin
+                data_out[i] <= '0;
+            end
+        end else begin
+            valid_out <= &valid_out_channel; // 모든 채널의 valid_out이 1일 때만 valid_out을 1로 설정
+            if (&valid_out_channel) begin
+                // Combine all channel outputs (Assuming simple concatenation)
+                for (int j = 0; j < (IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH); j = j + 1) begin
+                    data_out[j] <= channel_data_out[j]; // 간단하게 병합 (각 채널의 출력값을 연속적으로 나열)
+                end
+            end
+        end
+    end
+
+endmodule
+
 
 module max_pooling_layer1 #(
     parameter IMAGE_WIDTH = 4,

@@ -1,0 +1,61 @@
+`timescale 1ns / 1ps
+
+module max_pooling_layer1 #(
+    parameter IMAGE_WIDTH = 4,
+    parameter IMAGE_HEIGHT = 4,
+    parameter CHANNELS = 1,
+    parameter POOL_WIDTH = 2,
+    parameter POOL_HEIGHT = 2,
+    parameter DATA_WIDTH = 32,
+    parameter NUM_DATA = 16
+)(
+    input wire clk,
+    input wire rst_n,
+    input wire valid_in,
+    input wire [DATA_WIDTH-1:0] data_in [0:NUM_DATA-1],
+    output reg valid_out,
+    output reg [DATA_WIDTH-1:0] data_out [0:(IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH)-1]
+);
+
+    reg [DATA_WIDTH-1:0] temp_out [0:(IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH)-1];
+    reg [DATA_WIDTH-1:0] pixel0, pixel1, pixel2, pixel3;
+    reg [DATA_WIDTH-1:0] max0_1, max2_3;
+    reg [DATA_WIDTH-1:0] max0_1_2_3;
+    integer i, j, k;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            for (i = 0; i < (IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH); i = i + 1) begin
+                data_out[i] <= 0;
+            end
+            valid_out <= 0;
+        end else if (valid_in) begin
+            for (i = 0; i < IMAGE_HEIGHT/POOL_HEIGHT; i = i + 1) begin
+                for (j = 0; j < IMAGE_WIDTH/POOL_WIDTH; j = j + 1) begin
+                    // 각 2x2 블록의 픽셀 값 읽기
+                    pixel0 = data_in[(i*POOL_HEIGHT + 0) * IMAGE_WIDTH + (j*POOL_WIDTH + 0)];
+                    pixel1 = data_in[(i*POOL_HEIGHT + 0) * IMAGE_WIDTH + (j*POOL_WIDTH + 1)];
+                    pixel2 = data_in[(i*POOL_HEIGHT + 1) * IMAGE_WIDTH + (j*POOL_WIDTH + 0)];
+                    pixel3 = data_in[(i*POOL_HEIGHT + 1) * IMAGE_WIDTH + (j*POOL_WIDTH + 1)];
+
+                    // 최대값 계산
+                    max0_1 = (pixel0 > pixel1) ? pixel0 : pixel1;
+                    max2_3 = (pixel2 > pixel3) ? pixel2 : pixel3;
+                    max0_1_2_3 = (max0_1 > max2_3) ? max0_1 : max2_3;
+
+                    // 결과 저장
+                    temp_out[i * (IMAGE_WIDTH/POOL_WIDTH) + j] = max0_1_2_3;
+                end
+            end
+
+            // 결과를 data_out에 복사
+            for (i = 0; i < (IMAGE_HEIGHT/POOL_HEIGHT)*(IMAGE_WIDTH/POOL_WIDTH); i = i + 1) begin
+                data_out[i] <= temp_out[i];
+            end
+            valid_out <= 1;
+        end else begin
+            valid_out <= 0;
+        end
+    end
+
+endmodule

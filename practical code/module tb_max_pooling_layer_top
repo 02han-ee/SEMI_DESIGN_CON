@@ -1,0 +1,248 @@
+`timescale 1ns / 1ps
+
+module tb_max_pooling_layer_top;
+
+    // Testbench signals
+    logic clk;
+    logic rst_n;
+    logic valid_in;
+    logic [31:0] data_in_1 [0:1][0:1];
+    logic [31:0] data_in_2 [0:1][0:1];
+    logic [31:0] data_in_3 [0:1][0:1];
+    logic [31:0] data_in_4 [0:1][0:1];
+    logic [31:0] data_in_5 [0:1][0:1];
+    logic [31:0] data_in_6 [0:1][0:1];
+    logic [31:0] data_in_7 [0:1][0:1];
+    logic [31:0] data_in_8 [0:1][0:1];
+    logic [31:0] data_in_9 [0:1][0:1];
+    logic [31:0] data_in_10 [0:1][0:1];
+    logic [31:0] data_in_11 [0:1][0:1];
+    logic [31:0] data_in_12 [0:1][0:1];
+    logic [31:0] data_in_13 [0:1][0:1];
+    logic [31:0] data_in_14 [0:1][0:1];
+    logic [31:0] data_in_15 [0:1][0:1];
+    logic [31:0] data_in_16 [0:1][0:1];
+    logic [31:0] data_in_17 [0:1][0:1];
+    logic [31:0] data_in_18 [0:1][0:1];
+    logic [31:0] data_in_19 [0:1][0:1];
+    logic [31:0] data_in_20 [0:1][0:1];
+    logic [31:0] data_in_21 [0:1][0:1];
+    logic [31:0] data_in_22 [0:1][0:1];
+    logic [31:0] data_in_23 [0:1][0:1];
+    logic [31:0] data_in_24 [0:1][0:1];
+    logic [31:0] data_in_25 [0:1][0:1];
+    logic [31:0] data_in_26 [0:1][0:1];
+    logic [31:0] data_in_27 [0:1][0:1];
+    logic [31:0] data_in_28 [0:1][0:1];
+    logic [31:0] data_in_29 [0:1][0:1];
+    logic [31:0] data_in_30 [0:1][0:1];
+    logic [31:0] data_in_31 [0:1][0:1];
+    logic [31:0] data_in_32 [0:1][0:1];
+    logic [31:0] data_out_1;
+    logic [31:0] data_out_2;
+    logic [31:0] data_out_3;
+    logic [31:0] data_out_4;
+    logic [31:0] data_out_5;
+    logic [31:0] data_out_6;
+    logic [31:0] data_out_7;
+    logic [31:0] data_out_8;
+    logic [31:0] data_out_9;
+    logic [31:0] data_out_10;
+    logic [31:0] data_out_11;
+    logic [31:0] data_out_12;
+    logic [31:0] data_out_13;
+    logic [31:0] data_out_14;
+    logic [31:0] data_out_15;
+    logic [31:0] data_out_16;
+    logic [31:0] data_out_17;
+    logic [31:0] data_out_18;
+    logic [31:0] data_out_19;
+    logic [31:0] data_out_20;
+    logic [31:0] data_out_21;
+    logic [31:0] data_out_22;
+    logic [31:0] data_out_23;
+    logic [31:0] data_out_24;
+    logic [31:0] data_out_25;
+    logic [31:0] data_out_26;
+    logic [31:0] data_out_27;
+    logic [31:0] data_out_28;
+    logic [31:0] data_out_29;
+    logic [31:0] data_out_30;
+    logic [31:0] data_out_31;
+    logic [31:0] data_out_32;
+    logic valid_out;
+
+    // Instantiate the DUT
+    max_pooling_layer_top uut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .valid_in(valid_in),
+        .data_in_1(data_in_1),
+        .data_in_2(data_in_2),
+        .data_in_3(data_in_3),
+        .data_in_4(data_in_4),
+        .data_in_5(data_in_5),
+        .data_in_6(data_in_6),
+        .data_in_7(data_in_7),
+        .data_in_8(data_in_8),
+        .data_in_9(data_in_9),
+        .data_in_10(data_in_10),
+        .data_in_11(data_in_11),
+        .data_in_12(data_in_12),
+        .data_in_13(data_in_13),
+        .data_in_14(data_in_14),
+        .data_in_15(data_in_15),
+        .data_in_16(data_in_16),
+        .data_in_17(data_in_17),
+        .data_in_18(data_in_18),
+        .data_in_19(data_in_19),
+        .data_in_20(data_in_20),
+        .data_in_21(data_in_21),
+        .data_in_22(data_in_22),
+        .data_in_23(data_in_23),
+        .data_in_24(data_in_24),
+        .data_in_25(data_in_25),
+        .data_in_26(data_in_26),
+        .data_in_27(data_in_27),
+        .data_in_28(data_in_28),
+        .data_in_29(data_in_29),
+        .data_in_30(data_in_30),
+        .data_in_31(data_in_31),
+        .data_in_32(data_in_32),
+        .data_out_1(data_out_1),
+        .data_out_2(data_out_2),
+        .data_out_3(data_out_3),
+        .data_out_4(data_out_4),
+        .data_out_5(data_out_5),
+        .data_out_6(data_out_6),
+        .data_out_7(data_out_7),
+        .data_out_8(data_out_8),
+        .data_out_9(data_out_9),
+        .data_out_10(data_out_10),
+        .data_out_11(data_out_11),
+        .data_out_12(data_out_12),
+        .data_out_13(data_out_13),
+        .data_out_14(data_out_14),
+        .data_out_15(data_out_15),
+        .data_out_16(data_out_16),
+        .data_out_17(data_out_17),
+        .data_out_18(data_out_18),
+        .data_out_19(data_out_19),
+        .data_out_20(data_out_20),
+        .data_out_21(data_out_21),
+        .data_out_22(data_out_22),
+        .data_out_23(data_out_23),
+        .data_out_24(data_out_24),
+        .data_out_25(data_out_25),
+        .data_out_26(data_out_26),
+        .data_out_27(data_out_27),
+        .data_out_28(data_out_28),
+        .data_out_29(data_out_29),
+        .data_out_30(data_out_30),
+        .data_out_31(data_out_31),
+        .data_out_32(data_out_32),
+        .valid_out(valid_out)
+    );
+
+    // Test procedure
+    initial begin
+        // Initialize signals
+        clk = 0;
+        forever #5 clk = ~clk; // 10ns 클럭 주기
+    end
+
+    // 테스트 시퀀스
+    initial begin
+
+        rst_n = 0;
+        valid_in = 0;
+
+        rst_n = 1;
+
+        // Apply test vectors
+        // Test case 1
+ 
+        data_in_1[0][0] = 32'h0001; data_in_1[0][1] = 32'h0002; data_in_1[1][0] = 32'h0003; data_in_1[1][1] = 32'h0004;
+        data_in_2[0][0] = 32'h0005; data_in_2[0][1] = 32'h0006; data_in_2[1][0] = 32'h0007; data_in_2[1][1] = 32'h0008;
+        data_in_3[0][0] = 32'h0009; data_in_3[0][1] = 32'h000A; data_in_3[1][0] = 32'h000B; data_in_3[1][1] = 32'h000C;
+        data_in_4[0][0] = 32'h000D; data_in_4[0][1] = 32'h000E; data_in_4[1][0] = 32'h000F; data_in_4[1][1] = 32'h0010;
+        data_in_5[0][0] = 32'h0011; data_in_5[0][1] = 32'h0012; data_in_5[1][0] = 32'h0013; data_in_5[1][1] = 32'h0014;
+        data_in_6[0][0] = 32'h0015; data_in_6[0][1] = 32'h0016; data_in_6[1][0] = 32'h0017; data_in_6[1][1] = 32'h0018;
+        data_in_7[0][0] = 32'h0019; data_in_7[0][1] = 32'h001A; data_in_7[1][0] = 32'h001B; data_in_7[1][1] = 32'h001C;
+        data_in_8[0][0] = 32'h001D; data_in_8[0][1] = 32'h001E; data_in_8[1][0] = 32'h001F; data_in_8[1][1] = 32'h0020;
+        data_in_9[0][0] = 32'h0021; data_in_9[0][1] = 32'h0022; data_in_9[1][0] = 32'h0023; data_in_9[1][1] = 32'h0024;
+        data_in_10[0][0] = 32'h0025; data_in_10[0][1] = 32'h0026; data_in_10[1][0] = 32'h0027; data_in_10[1][1] = 32'h0028;
+        data_in_11[0][0] = 32'h0029; data_in_11[0][1] = 32'h002A; data_in_11[1][0] = 32'h002B; data_in_11[1][1] = 32'h002C;
+        data_in_12[0][0] = 32'h002D; data_in_12[0][1] = 32'h002E; data_in_12[1][0] = 32'h002F; data_in_12[1][1] = 32'h0030;
+        data_in_13[0][0] = 32'h0031; data_in_13[0][1] = 32'h0032; data_in_13[1][0] = 32'h0033; data_in_13[1][1] = 32'h0034;
+        data_in_14[0][0] = 32'h0035; data_in_14[0][1] = 32'h0036; data_in_14[1][0] = 32'h0037; data_in_14[1][1] = 32'h0038;
+        data_in_15[0][0] = 32'h0039; data_in_15[0][1] = 32'h003A; data_in_15[1][0] = 32'h003B; data_in_15[1][1] = 32'h003C;
+        data_in_16[0][0] = 32'h003D; data_in_16[0][1] = 32'h003E; data_in_16[1][0] = 32'h003F; data_in_16[1][1] = 32'h0040;
+        data_in_17[0][0] = 32'h0041; data_in_17[0][1] = 32'h0042; data_in_17[1][0] = 32'h0043; data_in_17[1][1] = 32'h0044;
+        data_in_18[0][0] = 32'h0045; data_in_18[0][1] = 32'h0046; data_in_18[1][0] = 32'h0047; data_in_18[1][1] = 32'h0048;
+        data_in_19[0][0] = 32'h0049; data_in_19[0][1] = 32'h004A; data_in_19[1][0] = 32'h004B; data_in_19[1][1] = 32'h004C;
+        data_in_20[0][0] = 32'h004D; data_in_20[0][1] = 32'h004E; data_in_20[1][0] = 32'h004F; data_in_20[1][1] = 32'h0050;
+        data_in_21[0][0] = 32'h0051; data_in_21[0][1] = 32'h0052; data_in_21[1][0] = 32'h0053; data_in_21[1][1] = 32'h0054;
+        data_in_22[0][0] = 32'h0055; data_in_22[0][1] = 32'h0056; data_in_22[1][0] = 32'h0057; data_in_22[1][1] = 32'h0058;
+        data_in_23[0][0] = 32'h0059; data_in_23[0][1] = 32'h005A; data_in_23[1][0] = 32'h005B; data_in_23[1][1] = 32'h005C;
+        data_in_24[0][0] = 32'h005D; data_in_24[0][1] = 32'h005E; data_in_24[1][0] = 32'h005F; data_in_24[1][1] = 32'h0060;
+        data_in_25[0][0] = 32'h0061; data_in_25[0][1] = 32'h0062; data_in_25[1][0] = 32'h0063; data_in_25[1][1] = 32'h0064;
+        data_in_26[0][0] = 32'h0065; data_in_26[0][1] = 32'h0066; data_in_26[1][0] = 32'h0067; data_in_26[1][1] = 32'h0068;
+        data_in_27[0][0] = 32'h0069; data_in_27[0][1] = 32'h006A; data_in_27[1][0] = 32'h006B; data_in_27[1][1] = 32'h006C;
+        data_in_28[0][0] = 32'h006D; data_in_28[0][1] = 32'h006E; data_in_28[1][0] = 32'h006F; data_in_28[1][1] = 32'h0070;
+        data_in_29[0][0] = 32'h0071; data_in_29[0][1] = 32'h0072; data_in_29[1][0] = 32'h0073; data_in_29[1][1] = 32'h0074;
+        data_in_30[0][0] = 32'h0075; data_in_30[0][1] = 32'h0076; data_in_30[1][0] = 32'h0077; data_in_30[1][1] = 32'h0078;
+        data_in_31[0][0] = 32'h0079; data_in_31[0][1] = 32'h007A; data_in_31[1][0] = 32'h007B; data_in_31[1][1] = 32'h007C;
+        data_in_32[0][0] = 32'h007D; data_in_32[0][1] = 32'h007E; data_in_32[1][0] = 32'h007F; data_in_32[1][1] = 32'h0080;
+
+        // 데이터 입력 활성화
+        #10;
+        valid_in = 1;
+        
+        #10; // Wait for a clock cycle
+        valid_in = 0;
+        #10;
+
+        // Wait for valid_out to become high
+        wait(valid_out);
+        #30;
+
+        // Display the results
+        $display("Time: %0t, data_out_1: %h", $time, data_out_1);
+        $display("Time: %0t, data_out_2: %h", $time, data_out_2);
+        $display("Time: %0t, data_out_3: %h", $time, data_out_3);
+        $display("Time: %0t, data_out_4: %h", $time, data_out_4);
+        $display("Time: %0t, data_out_5: %h", $time, data_out_5);
+        $display("Time: %0t, data_out_6: %h", $time, data_out_6);
+        $display("Time: %0t, data_out_7: %h", $time, data_out_7);
+        $display("Time: %0t, data_out_8: %h", $time, data_out_8);
+        $display("Time: %0t, data_out_9: %h", $time, data_out_9);
+        $display("Time: %0t, data_out_10: %h", $time, data_out_10);
+        $display("Time: %0t, data_out_11: %h", $time, data_out_11);
+        $display("Time: %0t, data_out_12: %h", $time, data_out_12);
+        $display("Time: %0t, data_out_13: %h", $time, data_out_13);
+        $display("Time: %0t, data_out_14: %h", $time, data_out_14);
+        $display("Time: %0t, data_out_15: %h", $time, data_out_15);
+        $display("Time: %0t, data_out_16: %h", $time, data_out_16);
+        $display("Time: %0t, data_out_17: %h", $time, data_out_17);
+        $display("Time: %0t, data_out_18: %h", $time, data_out_18);
+        $display("Time: %0t, data_out_19: %h", $time, data_out_19);
+        $display("Time: %0t, data_out_20: %h", $time, data_out_20);
+        $display("Time: %0t, data_out_21: %h", $time, data_out_21);
+        $display("Time: %0t, data_out_22: %h", $time, data_out_22);
+        $display("Time: %0t, data_out_23: %h", $time, data_out_23);
+        $display("Time: %0t, data_out_24: %h", $time, data_out_24);
+        $display("Time: %0t, data_out_25: %h", $time, data_out_25);
+        $display("Time: %0t, data_out_26: %h", $time, data_out_26);
+        $display("Time: %0t, data_out_27: %h", $time, data_out_27);
+        $display("Time: %0t, data_out_28: %h", $time, data_out_28);
+        $display("Time: %0t, data_out_29: %h", $time, data_out_29);
+        $display("Time: %0t, data_out_30: %h", $time, data_out_30);
+        $display("Time: %0t, data_out_31: %h", $time, data_out_31);
+        $display("Time: %0t, data_out_32: %h", $time, data_out_32);
+
+        // Finish simulation
+        $finish;
+    end
+
+endmodule

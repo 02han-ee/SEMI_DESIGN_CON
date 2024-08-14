@@ -1,3 +1,5 @@
+// 아래 모듈은 변경 사항 없이 layer 1, 2, 3 모두에 적용 가능합니다.
+
 `timescale 1ns / 1ps
 
 module max_pooling(

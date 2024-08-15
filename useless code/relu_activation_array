@@ -1,0 +1,175 @@
+`timescale 1ns / 1ps
+
+module relu_layer #(
+    parameter CHANNELS = 24 // 입력 채널 수
+)(
+    input wire clk,
+    input wire rst_n,
+    input wire valid_in,
+    input wire [31:0] data_in_1 [0:CHANNELS-1],
+    input wire [31:0] data_in_2 [0:CHANNELS-1],
+    input wire [31:0] data_in_3 [0:CHANNELS-1],
+    input wire [31:0] data_in_4 [0:CHANNELS-1],
+    input wire [31:0] data_in_5 [0:CHANNELS-1],
+    input wire [31:0] data_in_6 [0:CHANNELS-1],
+    input wire [31:0] data_in_7 [0:CHANNELS-1],
+    input wire [31:0] data_in_8 [0:CHANNELS-1],
+    input wire [31:0] data_in_9 [0:CHANNELS-1],
+    input wire [31:0] data_in_10 [0:CHANNELS-1],
+    input wire [31:0] data_in_11 [0:CHANNELS-1],
+    input wire [31:0] data_in_12 [0:CHANNELS-1],
+    input wire [31:0] data_in_13 [0:CHANNELS-1],
+    input wire [31:0] data_in_14 [0:CHANNELS-1],
+    input wire [31:0] data_in_15 [0:CHANNELS-1],
+    input wire [31:0] data_in_16 [0:CHANNELS-1],
+    input wire [31:0] data_in_17 [0:CHANNELS-1],
+    input wire [31:0] data_in_18 [0:CHANNELS-1],
+    input wire [31:0] data_in_19 [0:CHANNELS-1],
+    input wire [31:0] data_in_20 [0:CHANNELS-1],
+    input wire [31:0] data_in_21 [0:CHANNELS-1],
+    input wire [31:0] data_in_22 [0:CHANNELS-1],
+    input wire [31:0] data_in_23 [0:CHANNELS-1],
+    input wire [31:0] data_in_24 [0:CHANNELS-1],
+    output reg [31:0] data_out_1 [0:CHANNELS-1],
+    output reg [31:0] data_out_2 [0:CHANNELS-1],
+    output reg [31:0] data_out_3 [0:CHANNELS-1],
+    output reg [31:0] data_out_4 [0:CHANNELS-1],
+    output reg [31:0] data_out_5 [0:CHANNELS-1],
+    output reg [31:0] data_out_6 [0:CHANNELS-1],
+    output reg [31:0] data_out_7 [0:CHANNELS-1],
+    output reg [31:0] data_out_8 [0:CHANNELS-1],
+    output reg [31:0] data_out_9 [0:CHANNELS-1],
+    output reg [31:0] data_out_10 [0:CHANNELS-1],
+    output reg [31:0] data_out_11 [0:CHANNELS-1],
+    output reg [31:0] data_out_12 [0:CHANNELS-1],
+    output reg [31:0] data_out_13 [0:CHANNELS-1],
+    output reg [31:0] data_out_14 [0:CHANNELS-1],
+    output reg [31:0] data_out_15 [0:CHANNELS-1],
+    output reg [31:0] data_out_16 [0:CHANNELS-1],
+    output reg [31:0] data_out_17 [0:CHANNELS-1],
+    output reg [31:0] data_out_18 [0:CHANNELS-1],
+    output reg [31:0] data_out_19 [0:CHANNELS-1],
+    output reg [31:0] data_out_20 [0:CHANNELS-1],
+    output reg [31:0] data_out_21 [0:CHANNELS-1],
+    output reg [31:0] data_out_22 [0:CHANNELS-1],
+    output reg [31:0] data_out_23 [0:CHANNELS-1],
+    output reg [31:0] data_out_24 [0:CHANNELS-1],
+    output reg valid_out
+);
+integer delay;
+reg cnt[1:0];
+    
+    reg [31:0] data_in_i [0:CHANNELS-1];
+    
+    generate
+        genvar i;
+        for (i = 0; i < CHANNELS; i = i + 1) begin : gen_relu
+            always @(*) begin
+                if (valid_in == 1) begin
+                    case(i)
+                        0: data_in_i[i] = data_in_1[i];
+                        1: data_in_i[i] = data_in_2[i];
+                        2: data_in_i[i] = data_in_3[i];
+                        3: data_in_i[i] = data_in_4[i];
+                        4: data_in_i[i] = data_in_5[i];
+                        5: data_in_i[i] = data_in_6[i];
+                        6: data_in_i[i] = data_in_7[i];
+                        7: data_in_i[i] = data_in_8[i];
+                        8: data_in_i[i] = data_in_9[i];
+                        9: data_in_i[i] = data_in_10[i];
+                        10: data_in_i[i] = data_in_11[i];
+                        11: data_in_i[i] = data_in_12[i];
+                        12: data_in_i[i] = data_in_13[i];
+                        13: data_in_i[i] = data_in_14[i];
+                        14: data_in_i[i] = data_in_15[i];
+                        15: data_in_i[i] = data_in_16[i];
+                        16: data_in_i[i] = data_in_17[i];
+                        17: data_in_i[i] = data_in_18[i];
+                        18: data_in_i[i] = data_in_19[i];
+                        19: data_in_i[i] = data_in_20[i];
+                        20: data_in_i[i] = data_in_21[i];
+                        21: data_in_i[i] = data_in_22[i];
+                        22: data_in_i[i] = data_in_23[i];
+                        23: data_in_i[i] = data_in_24[i];
+                        default: data_in_i[i] = 32'b0;
+                    endcase
+                end else begin
+                    data_in_i[i] = 32'b0;
+                end
+            end
+        end
+    endgenerate
+    
+    // ReLU 활성화 함수
+    function [31:0] relu;
+        input [31:0] data;
+        begin
+            if (data[31] == 1'b1) // 데이터가 음수일 때
+                relu = 32'b0; // 0으로 설정
+            else
+                relu = data; // 양수일 때 그대로
+        end
+    endfunction
+
+    // 처리 블록
+    always @(*) begin
+        if (valid_in) begin
+            for (int j = 0; j < CHANNELS; j = j + 1) begin
+                data_out_1[j] = relu(data_in_i[j]);
+                data_out_2[j] = relu(data_in_i[j]);
+                data_out_3[j] = relu(data_in_i[j]);
+                data_out_4[j] = relu(data_in_i[j]);
+                data_out_5[j] = relu(data_in_i[j]);
+                data_out_6[j] = relu(data_in_i[j]);
+                data_out_7[j] = relu(data_in_i[j]);
+                data_out_8[j] = relu(data_in_i[j]);
+                data_out_9[j] = relu(data_in_i[j]);
+                data_out_10[j] = relu(data_in_i[j]);
+                data_out_11[j] = relu(data_in_i[j]);
+                data_out_12[j] = relu(data_in_i[j]);
+                data_out_13[j] = relu(data_in_i[j]);
+                data_out_14[j] = relu(data_in_i[j]);
+                data_out_15[j] = relu(data_in_i[j]);
+                data_out_16[j] = relu(data_in_i[j]);
+                data_out_17[j] = relu(data_in_i[j]);
+                data_out_18[j] = relu(data_in_i[j]);
+                data_out_19[j] = relu(data_in_i[j]);
+                data_out_20[j] = relu(data_in_i[j]);
+                data_out_21[j] = relu(data_in_i[j]);
+                data_out_22[j] = relu(data_in_i[j]);
+                data_out_23[j] = relu(data_in_i[j]);
+                data_out_24[j] = relu(data_in_i[j]);
+            end
+            valid_out = valid_in;
+        end else begin
+            for (int j = 0; j < CHANNELS; j = j + 1) begin
+                data_out_1[j] = 32'b0;
+                data_out_2[j] = 32'b0;
+                data_out_3[j] = 32'b0;
+                data_out_4[j] = 32'b0;
+                data_out_5[j] = 32'b0;
+                data_out_6[j] = 32'b0;
+                data_out_7[j] = 32'b0;
+                data_out_8[j] = 32'b0;
+                data_out_9[j] = 32'b0;
+                data_out_10[j] = 32'b0;
+                data_out_11[j] = 32'b0;
+                data_out_12[j] = 32'b0;
+                data_out_13[j] = 32'b0;
+                data_out_14[j] = 32'b0;
+                data_out_15[j] = 32'b0;
+                data_out_16[j] = 32'b0;
+                data_out_17[j] = 32'b0;
+                data_out_18[j] = 32'b0;
+                data_out_19[j] = 32'b0;
+                data_out_20[j] = 32'b0;
+                data_out_21[j] = 32'b0;
+                data_out_22[j] = 32'b0;
+                data_out_23[j] = 32'b0;
+                data_out_24[j] = 32'b0;
+            end
+            valid_out = 1'b0;
+        end
+    end
+
+endmodule

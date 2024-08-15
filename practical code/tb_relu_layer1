@@ -44,7 +44,7 @@ module tb_relu();
         // Apply reset
         #10;
         rst_n = 1;
-        #10;
+        #20;
 
         // Test case 1: Input a mix of positive and negative numbers
         // Positive numbers: 32'h3F800000 (1.0), 32'h40000000 (2.0)
@@ -54,6 +54,34 @@ module tb_relu();
         data_in[1] = 32'hBF800000;  // -1.0
         data_in[2] = 32'h40000000;  // 2.0
         data_in[3] = 32'hC0000000;  // -2.0
+        data_in[4] = 32'hBF800000;  // -1.0
+        data_in[5] = 32'hBF800000;  // -1.0
+        data_in[6] = 32'hC0000000;  // -2.0
+        data_in[7] = 32'hC0000000;  // -2.0 
+        data_in[8] = 32'h3F800000;  // 1.0
+        data_in[9] = 32'h40000000;  // 2.0
+        data_in[10] = 32'h40400000;  // 3.0
+        data_in[11] = 32'h40800000;  // 4.0
+        data_in[12] = 32'h4F000000;  // 2147483648.0
+        data_in[13] = 32'h4E800000;  // 1073741824.0
+        data_in[14] = 32'h4E000000;  // 536870912.0
+        data_in[15] = 32'h4D800000;  // 268435456.0    
+        data_in[16] = 32'h00800000;  // Small positive (denormalized)
+        data_in[17] = 32'h00800000;  // Small positive (denormalized)
+        data_in[18] = 32'h00800000;  // Small positive (denormalized)
+        data_in[19] = 32'h00800000;  // Small positive (denormalized)       
+        data_in[20] = 32'hCF000000;  // -2147483648.0
+        data_in[21] = 32'hCE800000;  // -1073741824.0
+        data_in[22] = 32'hCE000000;  // -536870912.0
+        data_in[23] = 32'hCD800000;  // -268435456.0        
+        data_in[24] = 32'h3F800000;  // 1.0
+        data_in[25] = 32'hBF800000;  // -1.0
+        data_in[26] = 32'h40000000;  // 2.0
+        data_in[27] = 32'hC0000000;  // -2.0
+        data_in[28] = 32'hBF800000;  // -1.0
+        data_in[29] = 32'hBF800000;  // -1.0
+        data_in[30] = 32'hC0000000;  // -2.0
+        data_in[31] = 32'hC0000000;  // -2.0                             
         #10;  // Wait for the data to propagate
 
         valid_in = 0;
@@ -65,6 +93,34 @@ module tb_relu();
         data_in[1] = 32'hBF800000;  // -1.0
         data_in[2] = 32'hC0000000;  // -2.0
         data_in[3] = 32'hC0000000;  // -2.0
+        data_in[4] = 32'h3F800000;  // 1.0
+        data_in[5] = 32'hBF800000;  // -1.0
+        data_in[6] = 32'h40000000;  // 2.0
+        data_in[7] = 32'hC0000000;  // -2.0
+        data_in[8] = 32'h3F800000;  // 1.0
+        data_in[9] = 32'h40000000;  // 2.0
+        data_in[10] = 32'h40400000;  // 3.0
+        data_in[11] = 32'h40800000;  // 4.0    
+        data_in[12] = 32'h4F000000;  // 2147483648.0
+        data_in[13] = 32'h4E800000;  // 1073741824.0
+        data_in[14] = 32'h4E000000;  // 536870912.0
+        data_in[15] = 32'h4D800000;  // 268435456.0  
+        data_in[16] = 32'h00800000;  // Small positive (denormalized)
+        data_in[17] = 32'h00800000;  // Small positive (denormalized)
+        data_in[18] = 32'h00800000;  // Small positive (denormalized)
+        data_in[19] = 32'h00800000;  // Small positive (denormalized)
+        data_in[20] = 32'hCF000000;  // -2147483648.0
+        data_in[21] = 32'hCE800000;  // -1073741824.0
+        data_in[22] = 32'hCE000000;  // -536870912.0
+        data_in[23] = 32'hCD800000;  // -268435456.0  
+        data_in[24] = 32'h3F800000;  // 1.0
+        data_in[25] = 32'hBF800000;  // -1.0
+        data_in[26] = 32'h40000000;  // 2.0
+        data_in[27] = 32'hC0000000;  // -2.0
+        data_in[28] = 32'hBF800000;  // -1.0
+        data_in[29] = 32'hBF800000;  // -1.0
+        data_in[30] = 32'hC0000000;  // -2.0
+        data_in[31] = 32'hC0000000;  // -2.0                                         
         #10;
 
         valid_in = 0;
@@ -72,10 +128,154 @@ module tb_relu();
 
         // Test case 3: Input all positive numbers
         valid_in = 1;
+        data_in[0] = 32'hC0000000;  // -2.0            
+        data_in[1] = 32'h3F800000;  // 1.0
+        data_in[2] = 32'h40000000;  // 2.0
+        data_in[3] = 32'h40400000;  // 3.0
+        data_in[4] = 32'h40800000;  // 4.0
+        data_in[5] = 32'hBF800000;  // -1.0
+        data_in[6] = 32'hBF800000;  // -1.0
+        data_in[7] = 32'hC0000000;  // -2.0
+        data_in[8] = 32'hC0000000;  // -2.0
+        data_in[9] = 32'h3F800000;  // 1.0
+        data_in[10] = 32'hBF800000;  // -1.0
+        data_in[11] = 32'h40000000;  // 2.0
+        data_in[12] = 32'hC0000000;  // -2.0   
+        data_in[13] = 32'h4F000000;  // 2147483648.0
+        data_in[14] = 32'h4E800000;  // 1073741824.0
+        data_in[15] = 32'h4E000000;  // 536870912.0
+        data_in[16] = 32'h4D800000;  // 268435456.0   
+        data_in[17] = 32'h00800000;  // Small positive (denormalized)
+        data_in[18] = 32'h00800000;  // Small positive (denormalized)
+        data_in[19] = 32'h00800000;  // Small positive (denormalized)
+        data_in[20] = 32'h00800000;  // Small positive (denormalized)        
+        data_in[21] = 32'hCF000000;  // -2147483648.0
+        data_in[22] = 32'hCE800000;  // -1073741824.0
+        data_in[23] = 32'hCE000000;  // -536870912.0
+        data_in[24] = 32'hCD800000;  // -268435456.0
+        data_in[25] = 32'h3F800000;  // 1.0
+        data_in[26] = 32'hBF800000;  // -1.0
+        data_in[27] = 32'h40000000;  // 2.0
+        data_in[28] = 32'hC0000000;  // -2.0
+        data_in[29] = 32'hBF800000;  // -1.0
+        data_in[30] = 32'hBF800000;  // -1.0
+        data_in[31] = 32'hC0000000;  // -2.0                               
+        #10;
+
+        valid_in = 0;
+        #10;
+        
+        valid_in = 1;
         data_in[0] = 32'h3F800000;  // 1.0
-        data_in[1] = 32'h40000000;  // 2.0
-        data_in[2] = 32'h40400000;  // 3.0
-        data_in[3] = 32'h40800000;  // 4.0
+        data_in[1] = 32'hBF800000;  // -1.0
+        data_in[2] = 32'h40000000;  // 2.0
+        data_in[3] = 32'hC0000000;  // -2.0
+        data_in[4] = 32'hBF800000;  // -1.0
+        data_in[5] = 32'hBF800000;  // -1.0
+        data_in[6] = 32'hC0000000;  // -2.0
+        data_in[7] = 32'hC0000000;  // -2.0 
+        data_in[8] = 32'h3F800000;  // 1.0
+        data_in[9] = 32'h40000000;  // 2.0
+        data_in[10] = 32'h40400000;  // 3.0
+        data_in[11] = 32'h40800000;  // 4.0
+        data_in[12] = 32'h4F000000;  // 2147483648.0
+        data_in[13] = 32'h4E800000;  // 1073741824.0
+        data_in[14] = 32'h4E000000;  // 536870912.0
+        data_in[15] = 32'h4D800000;  // 268435456.0    
+        data_in[16] = 32'h00800000;  // Small positive (denormalized)
+        data_in[17] = 32'h00800000;  // Small positive (denormalized)
+        data_in[18] = 32'h00800000;  // Small positive (denormalized)
+        data_in[19] = 32'h00800000;  // Small positive (denormalized)       
+        data_in[20] = 32'hCF000000;  // -2147483648.0
+        data_in[21] = 32'hCE800000;  // -1073741824.0
+        data_in[22] = 32'hCE000000;  // -536870912.0
+        data_in[23] = 32'hCD800000;  // -268435456.0        
+        data_in[24] = 32'h3F800000;  // 1.0
+        data_in[25] = 32'hBF800000;  // -1.0
+        data_in[26] = 32'h40000000;  // 2.0
+        data_in[27] = 32'hC0000000;  // -2.0
+        data_in[28] = 32'hBF800000;  // -1.0
+        data_in[29] = 32'hBF800000;  // -1.0
+        data_in[30] = 32'hC0000000;  // -2.0
+        data_in[31] = 32'hC0000000;  // -2.0                             
+        #10;  // Wait for the data to propagate
+
+        valid_in = 0;
+        #10;  // Wait to observe valid_out behavior
+
+        // Test case 2: Input all negative numbers (output should be all zero)
+        valid_in = 1;
+        data_in[0] = 32'hBF800000;  // -1.0
+        data_in[1] = 32'hBF800000;  // -1.0
+        data_in[2] = 32'hC0000000;  // -2.0
+        data_in[3] = 32'hC0000000;  // -2.0
+        data_in[4] = 32'h3F800000;  // 1.0
+        data_in[5] = 32'hBF800000;  // -1.0
+        data_in[6] = 32'h40000000;  // 2.0
+        data_in[7] = 32'hC0000000;  // -2.0
+        data_in[8] = 32'h3F800000;  // 1.0
+        data_in[9] = 32'h40000000;  // 2.0
+        data_in[10] = 32'h40400000;  // 3.0
+        data_in[11] = 32'h40800000;  // 4.0    
+        data_in[12] = 32'h4F000000;  // 2147483648.0
+        data_in[13] = 32'h4E800000;  // 1073741824.0
+        data_in[14] = 32'h4E000000;  // 536870912.0
+        data_in[15] = 32'h4D800000;  // 268435456.0  
+        data_in[16] = 32'h00800000;  // Small positive (denormalized)
+        data_in[17] = 32'h00800000;  // Small positive (denormalized)
+        data_in[18] = 32'h00800000;  // Small positive (denormalized)
+        data_in[19] = 32'h00800000;  // Small positive (denormalized)
+        data_in[20] = 32'hCF000000;  // -2147483648.0
+        data_in[21] = 32'hCE800000;  // -1073741824.0
+        data_in[22] = 32'hCE000000;  // -536870912.0
+        data_in[23] = 32'hCD800000;  // -268435456.0  
+        data_in[24] = 32'h3F800000;  // 1.0
+        data_in[25] = 32'hBF800000;  // -1.0
+        data_in[26] = 32'h40000000;  // 2.0
+        data_in[27] = 32'hC0000000;  // -2.0
+        data_in[28] = 32'hBF800000;  // -1.0
+        data_in[29] = 32'hBF800000;  // -1.0
+        data_in[30] = 32'hC0000000;  // -2.0
+        data_in[31] = 32'hC0000000;  // -2.0                                         
+        #10;
+
+        valid_in = 0;
+        #10;
+
+        // Test case 3: Input all positive numbers
+        valid_in = 1;
+        data_in[0] = 32'hC0000000;  // -2.0            
+        data_in[1] = 32'h3F800000;  // 1.0
+        data_in[2] = 32'h40000000;  // 2.0
+        data_in[3] = 32'h40400000;  // 3.0
+        data_in[4] = 32'h40800000;  // 4.0
+        data_in[5] = 32'hBF800000;  // -1.0
+        data_in[6] = 32'hBF800000;  // -1.0
+        data_in[7] = 32'hC0000000;  // -2.0
+        data_in[8] = 32'hC0000000;  // -2.0
+        data_in[9] = 32'h3F800000;  // 1.0
+        data_in[10] = 32'hBF800000;  // -1.0
+        data_in[11] = 32'h40000000;  // 2.0
+        data_in[12] = 32'hC0000000;  // -2.0   
+        data_in[13] = 32'h4F000000;  // 2147483648.0
+        data_in[14] = 32'h4E800000;  // 1073741824.0
+        data_in[15] = 32'h4E000000;  // 536870912.0
+        data_in[16] = 32'h4D800000;  // 268435456.0   
+        data_in[17] = 32'h00800000;  // Small positive (denormalized)
+        data_in[18] = 32'h00800000;  // Small positive (denormalized)
+        data_in[19] = 32'h00800000;  // Small positive (denormalized)
+        data_in[20] = 32'h00800000;  // Small positive (denormalized)        
+        data_in[21] = 32'hCF000000;  // -2147483648.0
+        data_in[22] = 32'hCE800000;  // -1073741824.0
+        data_in[23] = 32'hCE000000;  // -536870912.0
+        data_in[24] = 32'hCD800000;  // -268435456.0
+        data_in[25] = 32'h3F800000;  // 1.0
+        data_in[26] = 32'hBF800000;  // -1.0
+        data_in[27] = 32'h40000000;  // 2.0
+        data_in[28] = 32'hC0000000;  // -2.0
+        data_in[29] = 32'hBF800000;  // -1.0
+        data_in[30] = 32'hBF800000;  // -1.0
+        data_in[31] = 32'hC0000000;  // -2.0                               
         #10;
 
         valid_in = 0;
@@ -87,9 +287,19 @@ module tb_relu();
 
     // Monitor output data
     initial begin
-        $monitor("Time: %0t | valid_in: %b | data_in: %h %h %h %h | valid_out: %b | data_out: %h %h %h %h",
-                 $time, valid_in, data_in[0], data_in[1], data_in[2], data_in[3], 
-                 valid_out, data_out[0], data_out[1], data_out[2], data_out[3]);
+        $monitor("Time: %0t | valid_in: %b | data_in: %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h | valid_out: %b | data_out: %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h %h", 
+                 $time, 
+                 valid_in, 
+                 data_in[0], data_in[1], data_in[2], data_in[3], data_in[4], data_in[5], data_in[6], data_in[7], 
+                 data_in[8], data_in[9], data_in[10], data_in[11], data_in[12], data_in[13], data_in[14], data_in[15],
+                 data_in[16], data_in[17], data_in[18], data_in[19], data_in[20], data_in[21], data_in[22], data_in[23],
+                 data_in[24], data_in[25], data_in[26], data_in[27], data_in[28], data_in[29], data_in[30], data_in[31], 
+                 valid_out, 
+                 data_out[0], data_out[1], data_out[2], data_out[3], data_out[4], data_out[5], data_out[6], data_out[7],
+                 data_out[8], data_out[9], data_out[10], data_out[11], data_out[12], data_out[13], data_out[14], data_out[15],
+                 data_out[16], data_out[17], data_out[18], data_out[19], data_out[20], data_out[21], data_out[22], data_out[23],
+                 data_out[24], data_out[25], data_out[26], data_out[27], data_out[28], data_out[29], data_out[30], data_out[31]
+                 );
     end
 
 endmodule

@@ -134,7 +134,7 @@ module max_pooling_layer_top2 (
     output reg [31:0] data_out_64,
     output reg valid_out
 );
-integer delay;
+reg[10:0] delay;    // *****원래는 없었으나, 우석님 max pooling layer1 코드 보고 추가함.*****
 reg cnt[1:0];
     // 각 max_pooling 모듈에 들어가는 입력을 설정하는 블록
     reg [31:0] data_in_i [0:63][0:1][0:1];
